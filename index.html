@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Contador de Macros</title>
+
+<style>
+
+body{
+font-family: Arial;
+max-width:700px;
+margin:auto;
+padding:20px;
+}
+
+input{
+margin:5px;
+padding:6px;
+}
+button{
+padding:8px;
+margin:5px;
+}
+
+li{
+margin:5px 0;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<h1>Contador de Macros</h1>
+
+<h2>Objetivo kcal</h2>
+
+<input id="objetivoInput">
+<button onclick="guardarObjetivo()">Guardar objetivo</button>
+
+<h2>Añadir alimento a la base de datos</h2>
+
+<input id="nombreAlimento" placeholder="alimento">
+<input id="p100" placeholder="proteína /100g">
+<input id="g100" placeholder="grasas /100g">
+<input id="c100" placeholder="carbos /100g">
+
+<button onclick="guardarAlimento()">Guardar alimento</button>
+
+<h2>Registrar comida</h2>
+
+<input id="comidaNombre" placeholder="alimento">
+<input id="gramos" placeholder="gramos">
+
+<button onclick="añadirComida()">Añadir comida</button>
+
+<h2>Comidas de hoy</h2>
+
+<ul id="listaComidas"></ul>
+
+<h2>Totales del día</h2>
+
+<p>Kcal: <span id="kcal">0</span></p>
+<p>Proteínas: <span id="prot">0</span></p>
+<p>Grasas: <span id="gras">0</span></p>
+<p>Carbos: <span id="carb">0</span></p>
+
+<p>Kcal restantes: <span id="rest">0</span></p>
+
+<script>
+
+let alimentos = JSON.parse(localStorage.getItem("alimentos")) || {}
+let comidas = JSON.parse(localStorage.getItem("comidas")) || []
+let objetivo = localStorage.getItem("objetivo") || 2000
+
+document.getElementById("objetivoInput").value = objetivo
+
+function guardarObjetivo(){
+
+objetivo = document.getElementById("objetivoInput").value
+localStorage.setItem("objetivo", objetivo)
+
+actualizarTotales()
+
+}
+
+function guardarAlimento(){
+
+let nombre = document.getElementById("nombreAlimento").value
+
+alimentos[nombre] = {
+
+p:Number(document.getElementById("p100").value),
+g:Number(document.getElementById("g100").value),
+c:Number(document.getElementById("c100").value)
+
+}
+
+localStorage.setItem("alimentos",JSON.stringify(alimentos))
+
+alert("Alimento guardado")
+
+}
+
+function añadirComida(){
+
+let nombre = document.getElementById("comidaNombre").value
+let gramos = Number(document.getElementById("gramos").value)
+
+let alimento = alimentos[nombre]
+
+if(!alimento){
+
+alert("Alimento no encontrado")
+return
+
+}
+
+let p = alimento.p * gramos /100
+let g = alimento.g * gramos /100
+let c = alimento.c * gramos /100
+
+let kcal = p*4 + c*4 + g*9
+
+let comida = {
+
+nombre,
+gramos,
+p,
+g,
+c,
+kcal
+
+}
+
+comidas.push(comida)
+
+localStorage.setItem("comidas",JSON.stringify(comidas))
+
+mostrarComidas()
+actualizarTotales()
+
+}
+
+function mostrarComidas(){
+
+let lista = document.getElementById("listaComidas")
+
+lista.innerHTML=""
+
+comidas.forEach(c=>{
+
+let li = document.createElement("li")
+
+li.textContent = c.nombre+" "+c.gramos+"g - "+Math.round(c.kcal)+" kcal"
+
+lista.appendChild(li)
+
+})
+
+}
+
+function actualizarTotales(){
+
+let totalP=0
+let totalG=0
+let totalC=0
+let totalK=0
+
+comidas.forEach(c=>{
+
+totalP+=c.p
+totalG+=c.g
+totalC+=c.c
+totalK+=c.kcal
+
+})
+
+document.getElementById("prot").innerText=Math.round(totalP)
+document.getElementById("gras").innerText=Math.round(totalG)
+document.getElementById("carb").innerText=Math.round(totalC)
+document.getElementById("kcal").innerText=Math.round(totalK)
+
+document.getElementById("rest").innerText=Math.round(objetivo-totalK)
+
+}
+
+mostrarComidas()
+actualizarTotales()
+
+</script>
+
+</body>
+</html>
